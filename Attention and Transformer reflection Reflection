@@ -1,0 +1,23 @@
+Why RNN's struggle with long-term dependencies ?
+RNNs struggle with long-term dependencies because they have difficulty remembering information from many time steps earlier
+in a sequence.As sequences become longer, important earlier information gradually gets lost during training
+The earlier information gradually fades during training due to the vanishing gradient problem, making it difficult for 
+the network to remember important context from far earlier in the sequence.
+How LSTM's help with memory ?
+LSTMs help with memory by allowing the network to selectively remember important information for a long time and forget
+unimportant information.
+LSTMs help with memory by using special gates and a cell state to store, update, and preserve important information over long 
+sequences, allowing the model to remember long-term context more effectively than simple RNNs.
+What attention solves in sequence-to-sequence tasks ?
+Attention solves the problem of losing important information in sequence-to-sequence models by allowing the model to focus
+on the most relevant parts of the input sequence while generating the output.
+It helps the model remember and use important context dynamically.
+Attention solves the problem of losing important context in sequence-to-sequence tasks by allowing the model to focus on 
+the most relevant parts of the input sequence dynamically while generating each output element.
+Why transformers are important in modern NLP and Generative AI ?
+Transformers are important in modern NLP and Generative AI because they can understand long-range context, process data 
+efficiently, and generate highly accurate human-like text.
+They are the foundation of most modern AI systems.
+Transformers are important in modern NLP and Generative AI because they efficiently understand long-range context using 
+attention mechanisms, enabling powerful applications like chatbots, text generation, translation, and large language 
+models such as GPT and BERT.
