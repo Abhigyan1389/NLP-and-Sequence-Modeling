@@ -1,0 +1,564 @@
+# ==========================================================
+# BASELINE TEXT CLASSIFICATION MODEL
+# USING:
+# Naive Bayes + Bag of Words (BoW)
+# ==========================================================
+
+# This script performs:
+# 1. Text preprocessing
+# 2. Bag of Words vectorization
+# 3. Train-test split
+# 4. Naive Bayes model training
+# 5. Model evaluation
+
+# ==========================================================
+# IMPORT LIBRARIES
+# ==========================================================
+
+import pandas as pd
+import numpy as np
+import re
+import nltk
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from nltk.corpus import stopwords
+
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+
+from sklearn.naive_bayes import MultinomialNB
+
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix
+)
+
+# ==========================================================
+# DOWNLOAD STOPWORDS
+# ==========================================================
+
+nltk.download('stopwords')
+
+# ==========================================================
+# LOAD DATASET
+# ==========================================================
+
+# Replace with your filename
+df = pd.read_csv("customer_support_text_classification.csv")
+
+# ==========================================================
+# DISPLAY DATASET
+# ==========================================================
+
+print("================================================")
+print("FIRST 5 RECORDS")
+print("================================================")
+
+print(df.head())
+
+# ==========================================================
+# DEFINE TEXT AND TARGET COLUMNS
+# ==========================================================
+
+# Replace with actual column names if different
+text_col = 'text'
+target_col = 'label'
+
+# ==========================================================
+# HANDLE MISSING VALUES
+# ==========================================================
+
+df[text_col] = df[text_col].fillna("")
+
+# ==========================================================
+# TEXT CLEANING FUNCTION
+# ==========================================================
+
+stop_words = set(stopwords.words('english'))
+
+def clean_text(text):
+
+    # Lowercase
+    text = text.lower()
+
+    # Remove special characters and numbers
+    text = re.sub(r'[^a-zA-Z\s]', '', text)
+
+    # Tokenization
+    words = text.split()
+
+    # Remove stopwords
+    words = [word for word in words if word not in stop_words]
+
+    # Join words back
+    text = " ".join(words)
+
+    return text
+
+# ==========================================================
+# APPLY CLEANING
+# ==========================================================
+
+print("\nCleaning text data...")
+
+df['clean_text'] = df[text_col].apply(clean_text)
+
+# ==========================================================
+# DISPLAY SAMPLE CLEANED TEXT
+# ==========================================================
+
+print("\n================================================")
+print("SAMPLE CLEANED TEXT")
+print("================================================")
+
+print(df['clean_text'].iloc[0])
+
+# ==========================================================
+# BAG OF WORDS VECTORIZATION
+# ==========================================================
+
+print("\n================================================")
+print("BAG OF WORDS VECTORIZATION")
+print("================================================")
+
+vectorizer = CountVectorizer(
+
+    max_features=5000
+)
+
+X = vectorizer.fit_transform(df['clean_text'])
+
+y = df[target_col]
+
+print("Feature Matrix Shape:", X.shape)
+
+# ==========================================================
+# TRAIN-TEST SPLIT
+# ==========================================================
+
+X_train, X_test, y_train, y_test = train_test_split(
+
+    X,
+    y,
+
+    test_size=0.20,
+
+    random_state=42,
+
+    stratify=y
+)
+
+print("\nTraining Shape:", X_train.shape)
+print("Testing Shape :", X_test.shape)
+
+# ==========================================================
+# BUILD NAIVE BAYES MODEL
+# ==========================================================
+
+print("\n================================================")
+print("TRAINING NAIVE BAYES MODEL")
+print("================================================")
+
+model = MultinomialNB()
+
+# Train model
+model.fit(X_train, y_train)
+
+# ==========================================================
+# PREDICTIONS
+# ==========================================================
+
+y_pred = model.predict(X_test)
+
+# ==========================================================
+# MODEL EVALUATION
+# ==========================================================
+
+accuracy = accuracy_score(y_test, y_pred)
+
+print("\n================================================")
+print("MODEL PERFORMANCE")
+print("================================================")
+
+print("Accuracy:", round(accuracy, 4))
+
+# ==========================================================
+# CLASSIFICATION REPORT
+# ==========================================================
+
+print("\n================================================")
+print("CLASSIFICATION REPORT")
+print("================================================")
+
+print(classification_report(y_test, y_pred))
+
+# ==========================================================
+# CONFUSION MATRIX
+# ==========================================================
+
+cm = confusion_matrix(y_test, y_pred)
+
+plt.figure(figsize=(8,6))
+
+sns.heatmap(
+    cm,
+    annot=True,
+    fmt='d',
+    cmap='Blues'
+)
+
+plt.title("Confusion Matrix")
+
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+
+plt.show()
+
+# ==========================================================
+# SAMPLE PREDICTIONS
+# ==========================================================
+
+print("\n================================================")
+print("SAMPLE PREDICTIONS")
+print("================================================")
+
+sample_df = pd.DataFrame({
+
+    'Actual Label': y_test.values[:10],
+    'Predicted Label': y_pred[:10]
+})
+
+print(sample_df)
+
+# ==========================================================
+# TOP IMPORTANT WORDS
+# ==========================================================
+
+print("\n================================================")
+print("TOP VOCABULARY WORDS")
+print("================================================")
+
+feature_names = vectorizer.get_feature_names_out()
+
+print(feature_names[:20])
+
+# ==========================================================
+# INTERPRETATION
+# ==========================================================
+
+print("""
+=========================================================
+MODEL INTERPRETATION
+=========================================================
+
+1. Bag of Words:
+   - Converts text into word frequency vectors
+
+2. Naive Bayes:
+   - Probabilistic classification algorithm
+   - Works well for text classification
+
+3. MultinomialNB:
+   - Suitable for word count features
+
+4. Confusion Matrix:
+   - Shows correct and incorrect predictions
+
+5. Classification Report:
+   - Includes precision, recall, and F1-score
+
+6. Baseline Model:
+   - Simple benchmark model
+   - Helps compare advanced NLP models later
+=========================================================
+""")
+
+# ==========================================================
+# COMPLETED
+# ==========================================================
+
+print("\nBaseline Naive Bayes model completed successfully!")
+# ==========================================================
+# BASELINE TEXT CLASSIFICATION MODEL
+# USING:
+# Naive Bayes + Bag of Words (BoW)
+# ==========================================================
+
+# This script performs:
+# 1. Text preprocessing
+# 2. Bag of Words vectorization
+# 3. Train-test split
+# 4. Naive Bayes model training
+# 5. Model evaluation
+
+# ==========================================================
+# IMPORT LIBRARIES
+# ==========================================================
+
+import pandas as pd
+import numpy as np
+import re
+import nltk
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from nltk.corpus import stopwords
+
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+
+from sklearn.naive_bayes import MultinomialNB
+
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix
+)
+
+# ==========================================================
+# DOWNLOAD STOPWORDS
+# ==========================================================
+
+nltk.download('stopwords')
+
+# ==========================================================
+# LOAD DATASET
+# ==========================================================
+
+# Replace with your filename
+df = pd.read_csv("customer_support_text_classification.csv")
+
+# ==========================================================
+# DISPLAY DATASET
+# ==========================================================
+
+print("================================================")
+print("FIRST 5 RECORDS")
+print("================================================")
+
+print(df.head())
+
+# ==========================================================
+# DEFINE TEXT AND TARGET COLUMNS
+# ==========================================================
+
+# Replace with actual column names if different
+text_col = 'text'
+target_col = 'label'
+
+# ==========================================================
+# HANDLE MISSING VALUES
+# ==========================================================
+
+df[text_col] = df[text_col].fillna("")
+
+# ==========================================================
+# TEXT CLEANING FUNCTION
+# ==========================================================
+
+stop_words = set(stopwords.words('english'))
+
+def clean_text(text):
+
+    # Lowercase
+    text = text.lower()
+
+    # Remove special characters and numbers
+    text = re.sub(r'[^a-zA-Z\s]', '', text)
+
+    # Tokenization
+    words = text.split()
+
+    # Remove stopwords
+    words = [word for word in words if word not in stop_words]
+
+    # Join words back
+    text = " ".join(words)
+
+    return text
+
+# ==========================================================
+# APPLY CLEANING
+# ==========================================================
+
+print("\nCleaning text data...")
+
+df['clean_text'] = df[text_col].apply(clean_text)
+
+# ==========================================================
+# DISPLAY SAMPLE CLEANED TEXT
+# ==========================================================
+
+print("\n================================================")
+print("SAMPLE CLEANED TEXT")
+print("================================================")
+
+print(df['clean_text'].iloc[0])
+
+# ==========================================================
+# BAG OF WORDS VECTORIZATION
+# ==========================================================
+
+print("\n================================================")
+print("BAG OF WORDS VECTORIZATION")
+print("================================================")
+
+vectorizer = CountVectorizer(
+
+    max_features=5000
+)
+
+X = vectorizer.fit_transform(df['clean_text'])
+
+y = df[target_col]
+
+print("Feature Matrix Shape:", X.shape)
+
+# ==========================================================
+# TRAIN-TEST SPLIT
+# ==========================================================
+
+X_train, X_test, y_train, y_test = train_test_split(
+
+    X,
+    y,
+
+    test_size=0.20,
+
+    random_state=42,
+
+    stratify=y
+)
+
+print("\nTraining Shape:", X_train.shape)
+print("Testing Shape :", X_test.shape)
+
+# ==========================================================
+# BUILD NAIVE BAYES MODEL
+# ==========================================================
+
+print("\n================================================")
+print("TRAINING NAIVE BAYES MODEL")
+print("================================================")
+
+model = MultinomialNB()
+
+# Train model
+model.fit(X_train, y_train)
+
+# ==========================================================
+# PREDICTIONS
+# ==========================================================
+
+y_pred = model.predict(X_test)
+
+# ==========================================================
+# MODEL EVALUATION
+# ==========================================================
+
+accuracy = accuracy_score(y_test, y_pred)
+
+print("\n================================================")
+print("MODEL PERFORMANCE")
+print("================================================")
+
+print("Accuracy:", round(accuracy, 4))
+
+# ==========================================================
+# CLASSIFICATION REPORT
+# ==========================================================
+
+print("\n================================================")
+print("CLASSIFICATION REPORT")
+print("================================================")
+
+print(classification_report(y_test, y_pred))
+
+# ==========================================================
+# CONFUSION MATRIX
+# ==========================================================
+
+cm = confusion_matrix(y_test, y_pred)
+
+plt.figure(figsize=(8,6))
+
+sns.heatmap(
+    cm,
+    annot=True,
+    fmt='d',
+    cmap='Blues'
+)
+
+plt.title("Confusion Matrix")
+
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+
+plt.show()
+
+# ==========================================================
+# SAMPLE PREDICTIONS
+# ==========================================================
+
+print("\n================================================")
+print("SAMPLE PREDICTIONS")
+print("================================================")
+
+sample_df = pd.DataFrame({
+
+    'Actual Label': y_test.values[:10],
+    'Predicted Label': y_pred[:10]
+})
+
+print(sample_df)
+
+# ==========================================================
+# TOP IMPORTANT WORDS
+# ==========================================================
+
+print("\n================================================")
+print("TOP VOCABULARY WORDS")
+print("================================================")
+
+feature_names = vectorizer.get_feature_names_out()
+
+print(feature_names[:20])
+
+# ==========================================================
+# INTERPRETATION
+# ==========================================================
+
+print("""
+=========================================================
+MODEL INTERPRETATION
+=========================================================
+
+1. Bag of Words:
+   - Converts text into word frequency vectors
+
+2. Naive Bayes:
+   - Probabilistic classification algorithm
+   - Works well for text classification
+
+3. MultinomialNB:
+   - Suitable for word count features
+
+4. Confusion Matrix:
+   - Shows correct and incorrect predictions
+
+5. Classification Report:
+   - Includes precision, recall, and F1-score
+
+6. Baseline Model:
+   - Simple benchmark model
+   - Helps compare advanced NLP models later
+=========================================================
+""")
+
+# ==========================================================
+# COMPLETED
+# ==========================================================
+
+print("\nBaseline Naive Bayes model completed successfully!")
