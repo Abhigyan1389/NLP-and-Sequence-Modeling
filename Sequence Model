@@ -1,0 +1,471 @@
+# ==========================================================
+# SIMPLE RNN MODEL FOR TEXT CLASSIFICATION
+# ==========================================================
+
+# This script performs:
+# 1. Text preprocessing
+# 2. Tokenization
+# 3. Padding sequences
+# 4. Label encoding
+# 5. Train-test split
+# 6. Build Simple RNN model
+# 7. Train the model
+# 8. Evaluate the model
+
+# ==========================================================
+# IMPORT LIBRARIES
+# ==========================================================
+
+import pandas as pd
+import numpy as np
+import re
+import nltk
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from nltk.corpus import stopwords
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix
+)
+
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+from tensorflow.keras.models import Sequential
+
+from tensorflow.keras.layers import (
+    Embedding,
+    SimpleRNN,
+    Dense,
+    Dropout
+)
+
+from tensorflow.keras.utils import to_categorical
+
+from tensorflow.keras.optimizers import Adam
+
+# ==========================================================
+# DOWNLOAD STOPWORDS
+# ==========================================================
+
+nltk.download('stopwords')
+
+# ==========================================================
+# LOAD DATASET
+# ==========================================================
+
+# Replace with your dataset filename
+df = pd.read_csv("customer_support_text_classification.csv")
+
+# ==========================================================
+# DEFINE COLUMNS
+# ==========================================================
+
+text_col = 'text'
+target_col = 'label'
+
+# ==========================================================
+# HANDLE MISSING VALUES
+# ==========================================================
+
+df[text_col] = df[text_col].fillna("")
+
+# ==========================================================
+# TEXT CLEANING FUNCTION
+# ==========================================================
+
+stop_words = set(stopwords.words('english'))
+
+def clean_text(text):
+
+    # Convert to lowercase
+    text = text.lower()
+
+    # Remove special characters and numbers
+    text = re.sub(r'[^a-zA-Z\s]', '', text)
+
+    # Tokenization
+    words = text.split()
+
+    # Remove stopwords
+    words = [word for word in words if word not in stop_words]
+
+    # Join words
+    text = " ".join(words)
+
+    return text
+
+# ==========================================================
+# APPLY CLEANING
+# ==========================================================
+
+print("Cleaning text data...")
+
+df['clean_text'] = df[text_col].apply(clean_text)
+
+# ==========================================================
+# DISPLAY SAMPLE CLEANED TEXT
+# ==========================================================
+
+print("\n================================================")
+print("SAMPLE CLEANED TEXT")
+print("================================================")
+
+print(df['clean_text'].iloc[0])
+
+# ==========================================================
+# TOKENIZATION
+# ==========================================================
+
+MAX_WORDS = 10000
+
+tokenizer = Tokenizer(num_words=MAX_WORDS)
+
+tokenizer.fit_on_texts(df['clean_text'])
+
+# Convert text to sequences
+sequences = tokenizer.texts_to_sequences(df['clean_text'])
+
+# ==========================================================
+# PADDING SEQUENCES
+# ==========================================================
+
+MAX_SEQUENCE_LENGTH = 100
+
+X = pad_sequences(
+
+    sequences,
+
+    maxlen=MAX_SEQUENCE_LENGTH,
+
+    padding='post',
+
+    truncating='post'
+)
+
+print("\nSequence Shape:", X.shape)
+
+# ==========================================================
+# ENCODE TARGET LABELS
+# ==========================================================
+
+label_encoder = LabelEncoder()
+
+y = label_encoder.fit_transform(df[target_col])
+
+num_classes = len(np.unique(y))
+
+# One-hot encoding for multi-class classification
+y = to_categorical(y)
+
+print("\nNumber of Classes:", num_classes)
+
+# ==========================================================
+# TRAIN-TEST SPLIT
+# ==========================================================
+
+X_train, X_test, y_train, y_test = train_test_split(
+
+    X,
+    y,
+
+    test_size=0.20,
+
+    random_state=42
+)
+
+print("\nTraining Shape:", X_train.shape)
+print("Testing Shape :", X_test.shape)
+
+# ==========================================================
+# BUILD SIMPLE RNN MODEL
+# ==========================================================
+
+model = Sequential()
+
+# ==========================================================
+# EMBEDDING LAYER
+# ==========================================================
+
+model.add(
+
+    Embedding(
+
+        input_dim=MAX_WORDS,
+
+        output_dim=128,
+
+        input_length=MAX_SEQUENCE_LENGTH
+    )
+)
+
+# ==========================================================
+# SIMPLE RNN LAYER
+# ==========================================================
+
+model.add(
+
+    SimpleRNN(
+
+        units=64,
+
+        activation='tanh'
+    )
+)
+
+# ==========================================================
+# DROPOUT LAYER
+# ==========================================================
+
+model.add(
+
+    Dropout(0.5)
+)
+
+# ==========================================================
+# DENSE LAYER
+# ==========================================================
+
+model.add(
+
+    Dense(
+
+        64,
+
+        activation='relu'
+    )
+)
+
+# ==========================================================
+# OUTPUT LAYER
+# ==========================================================
+
+model.add(
+
+    Dense(
+
+        num_classes,
+
+        activation='softmax'
+    )
+)
+
+# ==========================================================
+# COMPILE MODEL
+# ==========================================================
+
+model.compile(
+
+    optimizer=Adam(learning_rate=0.001),
+
+    loss='categorical_crossentropy',
+
+    metrics=['accuracy']
+)
+
+# ==========================================================
+# MODEL SUMMARY
+# ==========================================================
+
+print("\n================================================")
+print("RNN MODEL SUMMARY")
+print("================================================")
+
+model.summary()
+
+# ==========================================================
+# TRAIN MODEL
+# ==========================================================
+
+history = model.fit(
+
+    X_train,
+    y_train,
+
+    epochs=10,
+
+    batch_size=32,
+
+    validation_split=0.2,
+
+    verbose=1
+)
+
+# ==========================================================
+# PLOT TRAINING CURVES
+# ==========================================================
+
+# Accuracy Plot
+plt.figure(figsize=(8,5))
+
+plt.plot(history.history['accuracy'], label='Training Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+
+plt.title("Training vs Validation Accuracy")
+
+plt.xlabel("Epoch")
+plt.ylabel("Accuracy")
+
+plt.legend()
+
+plt.show()
+
+# Loss Plot
+plt.figure(figsize=(8,5))
+
+plt.plot(history.history['loss'], label='Training Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+
+plt.title("Training vs Validation Loss")
+
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+
+plt.legend()
+
+plt.show()
+
+# ==========================================================
+# EVALUATE MODEL
+# ==========================================================
+
+loss, accuracy = model.evaluate(
+
+    X_test,
+    y_test,
+
+    verbose=0
+)
+
+print("\n================================================")
+print("TEST PERFORMANCE")
+print("================================================")
+
+print("Test Loss     :", round(loss, 4))
+print("Test Accuracy :", round(accuracy, 4))
+
+# ==========================================================
+# PREDICTIONS
+# ==========================================================
+
+y_pred_prob = model.predict(X_test)
+
+y_pred = np.argmax(y_pred_prob, axis=1)
+
+y_true = np.argmax(y_test, axis=1)
+
+# ==========================================================
+# CLASSIFICATION REPORT
+# ==========================================================
+
+print("\n================================================")
+print("CLASSIFICATION REPORT")
+print("================================================")
+
+print(classification_report(
+
+    y_true,
+    y_pred,
+
+    target_names=label_encoder.classes_
+))
+
+# ==========================================================
+# CONFUSION MATRIX
+# ==========================================================
+
+cm = confusion_matrix(y_true, y_pred)
+
+plt.figure(figsize=(8,6))
+
+sns.heatmap(
+
+    cm,
+
+    annot=True,
+
+    fmt='d',
+
+    cmap='Blues',
+
+    xticklabels=label_encoder.classes_,
+
+    yticklabels=label_encoder.classes_
+)
+
+plt.title("Confusion Matrix")
+
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+
+plt.show()
+
+# ==========================================================
+# SAMPLE PREDICTIONS
+# ==========================================================
+
+print("\n================================================")
+print("SAMPLE PREDICTIONS")
+print("================================================")
+
+for i in range(5):
+
+    original_text = df[text_col].iloc[i]
+
+    predicted_class = label_encoder.classes_[y_pred[i]]
+
+    actual_class = label_encoder.classes_[y_true[i]]
+
+    print(f"\nText: {original_text[:100]}...")
+
+    print("Actual Label   :", actual_class)
+
+    print("Predicted Label:", predicted_class)
+
+# ==========================================================
+# MODEL INTERPRETATION
+# ==========================================================
+
+print("""
+=========================================================
+RNN MODEL INTERPRETATION
+=========================================================
+
+1. Embedding Layer:
+   - Converts words into dense vectors
+
+2. SimpleRNN Layer:
+   - Learns sequence patterns in text
+
+3. Dropout Layer:
+   - Reduces overfitting
+
+4. Dense Layer:
+   - Learns high-level representations
+
+5. Output Layer:
+   - Softmax activation for multi-class classification
+
+6. Loss Function:
+   - Categorical Crossentropy
+
+7. Optimizer:
+   - Adam optimizer
+
+8. Evaluation Metrics:
+   - Accuracy
+   - Loss
+   - Classification Report
+   - Confusion Matrix
+=========================================================
+""")
+
+# ==========================================================
+# COMPLETED
+# ==========================================================
+
+print("\nSimple RNN model completed successfully!")
