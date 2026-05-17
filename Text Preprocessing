@@ -1,0 +1,23 @@
+# ==========================================================
+# TEXT DATA PREPROCESSING
+# ==========================================================
+
+# This script performs:
+# 1. Lowercasing
+# 2. Removing special characters
+# 3. Removing unnecessary symbols
+# 4. Tokenization
+# 5. Removing stopwords
+# 6. Padding/Truncating sequences
+
+# ==========================================================
+# IMPORT LIBRARIES
+# ==========================================================
+
+import pandas as pd
+import numpy as np
+import re
+import nltk
+
+from nltk.corpus import stopwords
+from nltk.token
